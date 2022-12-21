@@ -3,8 +3,9 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const Order = require("../Models/order");
 const Product = require("../Models/product");
+const checkAuth = require("../middleware/checkAuth");
 
-router.get("/", (req, res) => {
+router.get("/", checkAuth, (req, res) => {
   Order.find()
     .select("product quantity _id")
     .populate("product", "name")
@@ -30,7 +31,7 @@ router.get("/", (req, res) => {
     });
 });
 
-router.post("/", (req, res, next) => {
+router.post("/", checkAuth, (req, res, next) => {
   Product.findById(req.body.productID)
     .then((product) => {
       if (product) {
@@ -43,7 +44,7 @@ router.post("/", (req, res, next) => {
           .save()
           .then((result) => {
             console.log(result);
-            res.status(200).json({
+            res.status(201).json({
               message: "Order added",
               createdOrder: {
                 _id: result._id,
@@ -66,7 +67,7 @@ router.post("/", (req, res, next) => {
     });
 });
 
-router.get("/:orderID", (req, res, next) => {
+router.get("/:orderID", checkAuth, (req, res, next) => {
   const id = req.params.orderID;
   Order.findById({ _id: id })
     .populate("product")
@@ -90,7 +91,7 @@ router.get("/:orderID", (req, res, next) => {
     });
 });
 
-router.delete("/:orderID", (req, res, next) => {
+router.delete("/:orderID", checkAuth, (req, res, next) => {
   const id = req.params.orderID;
   Order.deleteOne({ _id: id })
     .exec()
