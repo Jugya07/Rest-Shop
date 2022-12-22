@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
+const app = require("./app");
 const dotenv = require("dotenv");
 dotenv.config();
-const app = require("./app");
 
 mongoose
   .connect(
@@ -13,8 +13,6 @@ mongoose
   .catch((err) => {
     throw err;
   });
-
-mongoose.set("strictQuery", true);
 
 const port = process.env.PORT || 4000;
 

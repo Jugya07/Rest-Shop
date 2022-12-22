@@ -1,15 +1,8 @@
 const express = require("express");
-const app = express();
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-dotenv.config();
 
-mongoose.connect(
-  `mongodb+srv://Test123:${process.env.PASSWORD}@rest-shop.lgpmvnw.mongodb.net/?retryWrites=true&w=majority`
-);
-mongoose.set("strictQuery", true);
+const app = express();
 
 const productRoutes = require("./api/routes/product");
 const orderRoutes = require("./api/routes/order");
