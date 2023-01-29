@@ -1,39 +1,26 @@
 const express = require("express");
 const morgan = require("morgan");
-const bodyParser = require("body-parser");
-
+const cors = require("cors");
+const Routes = require("./api/routes");
 const app = express();
 
-const productRoutes = require("./api/routes/product");
-const orderRoutes = require("./api/routes/order");
-const userRoutes = require("./api/routes/user");
+//Middlewares
+app.use(cors());
+app.use(morgan("dev"));
+app.use("/uploads", express.static("uploads"));
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
   res.send("Hello, Welcome to our API");
 });
 
-app.use(morgan("dev"));
-app.use("/uploads", express.static("uploads"));
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+//Routes
+app.use("/products", Routes.Product);
+app.use("/orders", Routes.Order);
+app.use("/users", Routes.User);
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin,X-Requested-With,Content-Type, Accept,Authorisation"
-  );
-  if (req.method === "OPTIONS") {
-    res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,PATCH");
-    return res.status(200).json({});
-  }
-  next();
-});
-
-app.use("/products", productRoutes);
-app.use("/orders", orderRoutes);
-app.use("/users", userRoutes);
-
+//ErrorHandlers
 app.use((req, res, next) => {
   const error = new Error("Path not found");
   error.status = 404;

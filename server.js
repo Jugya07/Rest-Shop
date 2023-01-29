@@ -1,12 +1,9 @@
+require("dotenv").config();
 const mongoose = require("mongoose");
 const app = require("./app");
-const dotenv = require("dotenv");
-dotenv.config();
 
 mongoose
-  .connect(
-    `mongodb+srv://Test123:${process.env.PASSWORD}@rest-shop.lgpmvnw.mongodb.net/?retryWrites=true&w=majority`
-  )
+  .connect(process.env.MONGOURI)
   .then((con) => {
     console.log("DB connection successful");
   })

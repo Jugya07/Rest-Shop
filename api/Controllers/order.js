@@ -1,14 +1,14 @@
 const mongoose = require("mongoose");
-const Order = require("../Models/order");
-const Product = require("../Models/product");
+const Utils = require("../utils");
+const Models = require("../models");
 
-exports.order_get_controller = (req, res) => {
-  Order.find()
+exports.order_get = (_req, res) => {
+  Models.Order.find()
     .select("product quantity _id")
     .populate("product", "name")
     .exec()
     .then((docs) => {
-      res.status(200).json({
+      const result = {
         count: docs.length,
         orders: docs.map((doc) => {
           return {
@@ -21,18 +21,19 @@ exports.order_get_controller = (req, res) => {
             },
           };
         }),
-      });
+      };
+      return res.json(Utils.Response.success(result));
     })
     .catch((err) => {
-      res.status(500).json(err);
+      return res.json(Utils.Response.error(err));
     });
 };
 
-exports.order_post_controller = (req, res, next) => {
-  Product.findById(req.body.productID)
+exports.order_post = (req, res) => {
+  Models.Product.findById(req.body.productID)
     .then((product) => {
       if (product) {
-        const order = new Order({
+        const order = new Models.Order({
           _id: mongoose.Types.ObjectId(),
           quantity: req.body.quantity,
           product: req.body.productID,
@@ -41,41 +42,41 @@ exports.order_post_controller = (req, res, next) => {
           .save()
           .then((result) => {
             console.log(result);
-            res.status(201).json({
-              message: "Order added",
-              createdOrder: {
-                _id: result._id,
-                product: result.product,
-                quantity: result.quantity,
-              },
-            });
+            return res.json(
+              Utils.Response.success(
+                {
+                  createdOrder: {
+                    _id: result._id,
+                    product: result.product,
+                    quantity: result.quantity,
+                  },
+                },
+                201
+              )
+            );
           })
           .catch((err) => {
-            res.status(500).json(err);
+            return res.json(Utils.Response.error(err));
           });
       } else {
-        res.status(404).json({
-          message: "No product found",
-        });
+        return res.json(Utils.Response.error("No Product found", 404));
       }
     })
     .catch((err) => {
-      res.status(500).json(err);
+      return res.json(Utils.Response.error(err));
     });
 };
 
-exports.order_get_description_controller = (req, res, next) => {
+exports.order_get_description = (req, res) => {
   const id = req.params.orderID;
-  Order.findById({ _id: id })
+  Models.Order.findById({ _id: id })
     .populate("product")
     .exec()
     .then((found) => {
       if (!found) {
-        return res.status(404).json({
-          message: "Order not found",
-        });
+        return res.json(Utils.Response.error("No Order found", 404));
       }
-      res.status(200).json({
+      return res.json({
         order: found,
         req: {
           type: "GET",
@@ -84,27 +85,18 @@ exports.order_get_description_controller = (req, res, next) => {
       });
     })
     .catch((err) => {
-      res.status(500).json(err);
+      return res.json(Utils.Response.error(err));
     });
 };
 
-exports.order_delete_controller = (req, res, next) => {
+exports.order_delete = (req, res) => {
   const id = req.params.orderID;
-  Order.deleteOne({ _id: id })
+  Models.Order.deleteOne({ _id: id })
     .exec()
     .then((result) => {
-      res.status(200).json({
-        message: "Deleted Order",
-        req: {
-          type: "POST",
-          body: {
-            productID: "productID",
-            quantity: "Number",
-          },
-        },
-      });
+      return res.json(Utils.Response.success("Order deleted"));
     })
     .catch((err) => {
-      res.status(500).json(err);
+      return res.json(Utils.Response.error(err));
     });
 };
