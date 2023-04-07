@@ -1,5 +1,5 @@
 const express = require("express");
-const checkAuth = require("../middleware/checkAuth");
+const Middlewares = require("../middleware");
 const Controllers = require("../controllers");
 const Utils = require("../utils");
 const router = express.Router();
@@ -7,12 +7,20 @@ const router = express.Router();
 router.get("/", Controllers.Product.product_get);
 router.post(
   "/",
-  checkAuth,
+  Middlewares.CheckAuth,
   Utils.Multer.upload.single("productImg"),
   Controllers.Product.product_post
 );
 router.get("/:productID", Controllers.Product.product_get_description);
-router.patch("/:productID", checkAuth, Controllers.Product.product_update);
-router.delete("/:productID", checkAuth, Controllers.Product.product_delete);
+router.patch(
+  "/:productID",
+  Middlewares.CheckAuth,
+  Controllers.Product.product_update
+);
+router.delete(
+  "/:productID",
+  Middlewares.CheckAuth,
+  Controllers.Product.product_delete
+);
 
 module.exports = router;

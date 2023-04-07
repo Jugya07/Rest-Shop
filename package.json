@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "sls offline --httpPort 5000",
+    "dev": "nodemon -e js --exec \"pnpm run start\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Jugya",
@@ -18,11 +20,11 @@
     "mongoose": "^6.8.1",
     "morgan": "^1.10.0",
     "multer": "1.4.5-lts.1",
-    "serverless-http": "^3.1.1"
+    "serverless-http": "^3.2.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.20",
-    "serverless-mongodb-local": "^1.6.0",
+    "serverless": "^3.28.1",
     "serverless-offline": "^12.0.4"
   }
 }
