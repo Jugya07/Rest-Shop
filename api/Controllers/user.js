@@ -1,15 +1,14 @@
-const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Models = require("../models");
 const Utils = require("../utils");
-const Middlewares = require("../middleware");
+const Middlewares = require("../middlewares");
 
 exports.user_signup = Middlewares.CatchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
-  if (!email || typeof email !== "string") {
-    return next(Utils.Response.error("Email should of type string", 400));
+  if (!email || typeof email !== "string" || !password) {
+    return next(Utils.Response.error("Invalid Fields", 400));
   }
 
   let user = await Models.User.findOne({ email });

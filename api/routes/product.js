@@ -1,7 +1,9 @@
 const express = require("express");
-const Middlewares = require("../middleware");
+
+const Middlewares = require("../middlewares");
 const Controllers = require("../controllers");
 const Utils = require("../utils");
+
 const router = express.Router();
 
 router.get("/", Controllers.Product.product_get);

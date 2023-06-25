@@ -1,122 +1,104 @@
-const Models = require("../models");
 const mongoose = require("mongoose");
+const Models = require("../models");
 const Utils = require("../utils");
+const Middlewares = require("../middlewares");
 
-exports.product_get = (req, res, _next) => {
-  Models.Product.find()
-    .select("name price _id")
-    .exec()
-    .then((docs) => {
-      const response = {
-        count: docs.length,
-        products: docs.map((doc) => {
-          return {
-            name: doc.name,
-            price: doc.price,
-            id: doc._id,
-            productImg: doc.productImg,
-            request: {
-              type: "GET",
-              url: "http://localhost:4000/products/" + doc._id,
-            },
-          };
-        }),
-      };
-      if (docs.length > 0) {
-        return res.json(Utils.Response.success(response));
-      } else {
-        return res.json(Utils.Response.error("No products", 404));
-      }
-    })
-    .catch((err) => {
-      return res.json(Utils.Response.error(err));
-    });
-};
+exports.product_get = Middlewares.CatchAsync(async (_req, res, next) => {
+  const products = await Models.Product.find().select("name price _id");
+  if (products.length === 0) {
+    return next(Utils.Response.error("No Products", 404));
+  }
 
-exports.product_post = (req, res, next) => {
-  const product = new Models.Product({
-    _id: new mongoose.Types.ObjectId(),
-    name: req.body.name,
-    price: req.body.price,
-    productImg: req.file.path,
-  });
-  product
-    .save()
-    .then((result) => {
-      const product = {
-        name: result.name,
-        price: result.price,
-        id: result._id,
-        productImg: result.productImg,
-        req: {
+  const response = {
+    count: products.length,
+    products: products.map((doc) => {
+      return {
+        name: doc.name,
+        price: doc.price,
+        id: doc._id,
+        productImg: doc.productImg,
+        request: {
           type: "GET",
-          url: "http://localhost:4000/products/" + result._id,
+          url: `${process.env.BASE_URL}/products/` + doc._id,
         },
       };
+    }),
+  };
 
-      return res.json(Utils.Response.success(product, 201));
-    })
-    .catch((err) => {
-      return res.json(Utils.Response.error(err));
-    });
-};
+  return res.json(Utils.Response.success(response));
+});
 
-exports.product_get_description = (req, res, next) => {
-  const id = req.params.productID;
-  Models.Product.findById(id)
-    .exec()
-    .then((found) => {
-      if (found) {
-        return res.json(Utils.Response.success(found));
-      } else {
-        return res.json(
-          Utils.Response.error("No valid entry found with the ID")
-        );
-      }
-    })
-    .catch((err) => {
-      return res.json(Utils.Response.error(err));
-    });
-};
+exports.product_post = Middlewares.CatchAsync(async (req, res, next) => {
+  const { name, price } = req.body;
+  const { productImg } = req.file;
+  if (
+    !name ||
+    typeof name !== String ||
+    !price ||
+    typeof price !== Number ||
+    !productImg
+  ) {
+    return next(Utils.Response.error("Invalid field", 400));
+  }
+  const product = await Models.Product.create({
+    _id: new mongoose.Types.ObjectId(),
+    name,
+    price,
+    productImg,
+  });
 
-exports.product_update = (req, res, next) => {
-  const id = req.params.productID;
-  Models.Product.updateOne({ _id: id }, { $set: req.body })
-    .exec()
-    .then((result) => {
-      return res.json(
-        Utils.Response.success({
-          req: {
-            type: "GET",
-            url: "http://localhost:4000/products/" + id,
-          },
-        })
-      );
-    })
-    .catch((err) => {
-      return res.json(Utils.Response.error(err));
-    });
-};
+  const newProduct = {
+    product,
+    req: {
+      type: "GET",
+      url: `${process.env.BASE_URL}/products/` + product._id,
+    },
+  };
 
-exports.product_delete = (req, res, next) => {
-  const id = req.params.productID;
-  Models.Product.deleteOne({ _id: id })
-    .exec()
-    .then((result) => {
-      return res.json(
-        Utils.Response.success({
-          req: {
-            type: "POST",
-            url: "http://localhost:4000/products",
-            body: {
-              name: "String",
-              price: "Number",
-            },
-          },
-        })
-      );
+  return res.json(Utils.Response.success(newProduct, 201));
+});
+
+exports.product_get_description = Middlewares.CatchAsync(async (req, res) => {
+  const { productID } = req.params;
+
+  const product = await Models.Product.findById(productID);
+
+  if (!product) {
+    return next(Utils.Response.error("No valid entry found with the ID", 400));
+  }
+  return res.json(Utils.Response.success(product));
+});
+
+exports.product_update = Middlewares.CatchAsync(async (req, res) => {
+  const { productID } = req.params;
+  const product = await Models.Product.findById(productID);
+  if (!product) {
+    return next(Utils.Response.error("No product found with the id!", 400));
+  }
+  await Models.Product.updateOne({ _id: productID }, { $set: req.body });
+  return res.json(
+    Utils.Response.success({
+      req: {
+        type: "GET",
+        url: `${process.env.BASE_URL}/products/` + id,
+      },
     })
-    .catch((err) => {
-      return res.json(Utils.Response.error(err));
-    });
-};
+  );
+});
+
+exports.product_delete = Middlewares.CatchAsync(async (req, res) => {
+  const { productID } = req.params;
+  await Models.Product.deleteOne({ _id: productID });
+  return res.json(
+    Utils.Response.success({
+      req: {
+        type: "POST",
+        url: `${process.env.BASE_URL}/products/`,
+        body: {
+          name: "String",
+          price: "Number",
+        },
+      },
+    })
+  );
+});
