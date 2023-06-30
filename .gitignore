@@ -4,11 +4,11 @@ logs
 npm-debug.log*
 
 # Dependency directory
-pnpm-lock.yaml
 **/node_modules/**
 node_modules
 .pnp.cjs
 uploads
+pnpm-lock.yaml
 # Coverage directory used by tools like istanbul
 coverage
 .env
